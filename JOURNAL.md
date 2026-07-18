@@ -1,68 +1,24 @@
-#  Project Journal: Bio-Sensing Smart Digestor
-> **An Automated In-Vitro Systems for Real-Time Drug Dissolution and Photosensitivity Monitoring**
-> **Platform:** ESP32 | **Application:** Biopharmaceutics & Pharmaceutical Engineering
+title: "Bio-Sensing Smart Digestor"
+author: "YASSIN MOHAMED"
+description: "An automated laboratory simulator built with ESP32 to monitor pharmaceutical dissolution rates corrected by real-time thermodynamic and environmental variables."
+created_at: "2026-07-18"July 18th: Initial System Architecture & Multi-Sensor Integration on ESP32Today, I initiated the engineering phase for the Bio-Sensing Smart Digestor. The core objective was to move away from basic 8-bit microcontrollers and establish a robust 32-bit architecture using the ESP32 to handle multi-sensor arrays, high-resolution ADC processing, and prepare the foundation for future IoT capabilities. What Got DoneDesigned the Multi-Sensor Topology: Mapped out the pinout configurations to safely integrate 5V components (HC-SR04 Ultrasonic Sensor and the Parallel LCD 16x2) alongside 3.3V native components (DHT Sensor and LDR) without causing logic voltage mismatch issues.Assembled the Physical Prototype Circuit: * Mounted the ESP32 on the primary breadboard matrix.Wired the HC-SR04 Ultrasonic sensor over GPIO 12 (Trig) and GPIO 13 (Echo) using the VIN rail for a stable 5V supply line.Set up the DHT Temperature/Humidity sensor on GPIO 4 to capture ambient variables. This will feed into our thermodynamic speed-of-sound correction formula:$$v = 331.4 + 0.6 \times T$$Wired the LDR (Light Dependent Resistor) in a voltage divider configuration with a $10\text{ k}\Omega$ pull-down resistor leading into the analog pin GPIO 34.Connected the Parallel 16x2 LCD Screen directly using data pins GPIO 5, 18, 19, 21 along with control lines RS (GPIO 22) and E (GPIO 23). Added a $10\text{ k}\Omega$ potentiometer to control the liquid crystal contrast dynamic.Placed three status indicators (LEDs: Green, Yellow, Red) on pins GPIO 25, 26, 27 with $220\Omega$ current-limiting resistors for immediate visual telemetry feedback.Calibrated the Beaker Volumetric Environment: Established the physical distance parameters using a standard 500 mL glass laboratory beaker filled up to the 400 mL threshold line.Empty State Baseline (100% Dissolution): Measured exactly 12 cm from the top-mounted sensor frame to the liquid base.Full State Baseline (0% Dissolution): Placed an initial large effervescent test tablet on the submerged platform, bringing the topographic height reading down to 9 cm. Software & Tools UsedFritzing (for schematic mapping and tracing the parallel lines cleanly).Visual Studio Code (VS Code) with the Hackatime extension active for text-based code tracking.Lapse (running on the workbench camera mount to record the circuit assembly, component placements, and initial wire routing).Engineering Artifacts & SchematicsBelow is the exact circuit wiring matrix used to deploy the hardware layout:[ESP32 Pins]            [Target Component & Pin Connections]
+5V (VIN) -------------> HC-SR04 VCC  |  LCD Pin 2 (VDD)  |  LCD Pin 15 (A)
+GND ------------------> Common Ground Rail (HC-SR04, DHT, LDR Resistor, LEDs, LCD Pins 1, 5, 16)
+3.3V -----------------> DHT VCC      |  LDR Pin 1
 
----
+GPIO 12 --------------> HC-SR04 TRIG
+GPIO 13 --------------> HC-SR04 ECHO
+GPIO 4 --------------> DHT DATA Pin
 
-##  Project Overview & Objective
-The **Bio-Sensing Smart Digestor** is an innovative, low-cost scientific simulator designed to monitor the dissolution rate of oral solid dosage forms (capsules/tablets) in a simulated gastric environment. By utilizing non-contact ultrasonic topographic measurement and optical sensors, the system provides real-time data on compound disintegration and light exposure hazards without human intervention.
+GPIO 34 --------------> LDR Pin 2 / 10kΩ Resistor Junction (Analog Input)
 
----
+GPIO 22 --------------> LCD Pin 4 (RS)
+GPIO 23 --------------> LCD Pin 6 (E)
+GPIO 5 --------------> LCD Pin 11 (D4)
+GPIO 18 --------------> LCD Pin 12 (D5)
+GPIO 19 --------------> LCD Pin 13 (D6)
+GPIO 21 --------------> LCD Pin 14 (D7)
 
-##  Development Log & Milestones
-
-###  Phase 1: Conceptualization & Math Modeling
-* **Challenge:** How to measure the dissolution rate of a tablet without physical contact or expensive chemical assays (like UV-Vis Spectroscopy)?
-* **The Solution:** We modeled the tablet’s physical decay as a **topographic height variation**. By measuring the distance from a fixed point at the top of a 500mL beaker to the dissolving tablet, we can map this physical erosion to a dissolution percentage ($0\%$ to $100\%$).
-* **The Physics of Sound:** Standard speed of sound is $343 \text{ m/s}$ at $20^\circ\text{C}$, but it changes with temperature ($T$). To keep the measurements highly accurate inside a laboratory environment, we integrated the temperature correction formula:
-    $$\text{Speed of Sound } (c) = 331.4 + (0.6 \times T) \text{ m/s}$$
-
----
-
-### Phase 2: Hardware Architecture & Pin Mapping (ESP32)
-We migrated the system from Arduino Uno to **ESP32** to utilize its high processing speed and future IoT connectivity. 
-
-#### 🔌 Wiring Topology:
-* **Ultrasonic Sensor (HC-SR04):** Trigger $\rightarrow$ `GPIO 12`, Echo $\rightarrow$ `GPIO 13` (Powered by `5V` via VIN).
-* **Temperature & Humidity (DHT11/22):** Data $\rightarrow$ `GPIO 4` (Powered by `3.3V`).
-* **Light Dependent Resistor (LDR):** Connected to `GPIO 34` (Analog input) using a $10\text{k}\Omega$ pull-down resistor.
-    * *Note:* The ESP32 ADC has a **12-bit resolution** (values from $0$ to $4095$), unlike the Arduino's 10-bit ADC ($0$-$1023$). We calibrated our software formulas accordingly.
-* **LCD 16x2 (Direct 4-Bit Interface):** * `RS` $\rightarrow$ `GPIO 22` | `E` $\rightarrow$ `GPIO 23`
-    * `D4-D7` $\rightarrow$ `GPIO 5, 18, 19, 21`
-    * `V0` connected to a fixed $10\text{k}\Omega$ voltage divider for optimal contrast.
-* **RGB Status LEDs:**
-    * **Green (Safe):** `GPIO 25`
-    * **Yellow (Processing):** `GPIO 26`
-    * **Red (Danger/Unsafe Light):** `GPIO 27`
-
----
-
-### Phase 3: Calibration & Experimental Testing
-We ran empirical tests using a standard **500mL Beaker** filled with water to simulate gastric fluid.
-
-1.  **Calibration Parameters:**
-    * **Empty Beaker Distance (`emptyDistance`):** $12 \text{ cm}$ (Target fully dissolved or empty).
-    * **Full Beaker / Initial Tablet Distance (`fullDistance`):** $9 \text{ cm}$ (Tablet placed at the bottom, initial height peak).
-2.  **LDR Lux Thresholding:**
-    * Under safe dark/filtered laboratory conditions, the ESP32 ADC reads high values ($> 3000$).
-    * Under direct light exposure (simulating light-sensitive drug degradation), the ADC value drops below $1500$, triggering the **Red Blinking LED** safety alert.
-
----
-
-###  Phase 4: Experimental Observations & Results
-During our live trial with an effervescent tablet:
-
-| Elapsed Time (s) | Measured Distance (cm) | Calculated Dissolution (%) | LDR Reading | Status LED |
-|------------------|------------------------|----------------------------|-------------|------------|
-| 0s               | $9.0 \text{ cm}$       | $0\%$                      | 3200 (Safe) | Yellow     |
-| 15s              | $9.75 \text{ cm}$      | $25\%$                     | 3150 (Safe) | Yellow     |
-| 30s              | $10.5 \text{ cm}$      | $50\%$                     | 3100 (Safe) | Yellow     |
-| 45s              | $11.25 \text{ cm}$     | $75\%$                     | 1200 (Light)| Red (Blink)|
-| 60s              | $12.0 \text{ cm}$      | $100\%$ (Complete)         | 3100 (Safe) | Green      |
-
----
-
-## Future Enhancements (Roadmap)
-1.  **Mechanical Agitation:** Add a small PWM-controlled DC stirrer to simulate stomach contractions (Peristalsis) and study its effect on dissolution rates.
-2.  **IoT Dashboard (Blynk/ThingSpeak):** Stream real-time kinetic curves (Dissolution vs. Time) to a cloud platform for remote pharmaceutical research.
-3.  **pH Feedback Loop:** Integrate a pH sensor to monitor changes in acidity as the drug releases its active ingredients.
+GPIO 25 --------------> Green LED (+) ---> [220Ω] ---> GND (Safe Status)
+GPIO 26 --------------> Yellow LED (+) --> [220Ω] ---> GND (Processing Status)
+GPIO 27 --------------> Red LED (+) -----> [220Ω] ---> GND (Photosensitive Danger Alert)
