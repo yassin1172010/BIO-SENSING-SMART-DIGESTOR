@@ -1,6 +1,5 @@
 # BIO-SENSING-SMART-DIGESTOR
-The Bio Sensing Smart digestor idea depend on an ultrasonic sensor which see the distance from it to the medical pill and then i using coding will make an equations and logarithms to convert this distance into a percentage which is the dissolution rate of the pill in which as the when the pill is thrown in the water beaker below the ultrasonic .
-
+The Bio-Sensing Smart Digestor uses a sound sensor to measure the distance to a medical pill. Through simple coding, math equations turn this distance into a clear percentage showing the pill's melting rate, actively checking how it breaks down the moment it is dropped into the water cup below. and adding sensors due to the accuracy and percision. 
 ### Project Demo & Testing
 You can watch the full explanation and testing plan of the prototype on YouTube:
 [Watch the video on YouTube](https://youtu.be/26Ha9dCUczk)
